@@ -1,50 +1,47 @@
-from openai import OpenAI
 import os
+import requests
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+from dotenv import load_dotenv
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+load_dotenv()
 
-response = client.chat.completions.create(
-    model="gpt-4o-mini",
-    messages=[
-        {"role": "user", "content": "Hello"}
-    ]
-)
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+OPENAI_URL = "https://api.openai.com/v1/chat/completions"
 
-# Allow frontend access
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # change to your domain later
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+app = FastAPI()
 
-class CompareRequest(BaseModel):
-    item1: str
-    item2: str
-    category: str  # player or team
+class PromptRequest(BaseModel):
+    prompt: str
+    model: str = "gpt-4o-mini"
+    temperature: float = 0.7
 
-@app.post("/compare")
-def compare(req: CompareRequest):
-    prompt = f"""
-    Compare the following two {req.category}s in detail:
+@app.get("/")
+def health_check():
+    return {"status": "AI Engine running"}
 
-    {req.item1} VS {req.item2}
+@app.post("/generate")
+def generate_text(data: PromptRequest):
+    headers = {
+        "Authorization": f"Bearer {OPENAI_API_KEY}",
+        "Content-Type": "application/json"
+    }
 
-    Include:
-    - Overview
-    - Strengths
-    - Weaknesses
-    - Key statistics (general knowledge)
-    - Final verdict
-    """
+    payload = {
+        "model": data.model,
+        "messages": [
+            {"role": "system", "content": "You are a helpful AI assistant."},
+            {"role": "user", "content": data.prompt}
+        ],
+        "temperature": data.temperature
+    }
 
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "user", "content": prompt}
-        ]
-    )
+    response = requests.post(OPENAI_URL, headers=headers, json=payload)
 
+    if response.status_code != 200:
+        raise HTTPException(status_code=500, detail=response.text)
+
+    result = response.json()
     return {
-        "comparison": response.choices[0].message.content
-}
+        "reply": result["choices"][0]["message"]["content"]
+    }
