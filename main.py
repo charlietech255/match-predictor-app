@@ -1,6 +1,7 @@
 import os
 import requests
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
 
@@ -10,6 +11,15 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 OPENAI_URL = "https://api.openai.com/v1/chat/completions"
 
 app = FastAPI()
+
+# 🔥 CORS FIX
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # allow all domains (safe for now)
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class PromptRequest(BaseModel):
     prompt: str
