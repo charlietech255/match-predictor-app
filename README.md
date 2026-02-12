@@ -19,7 +19,7 @@ Perfect for front-end apps, little tools, prototypes, or when you don't want to 
 
 ```bash
 # 1. Clone & go inside
-git clone [(https://github.com/charlietech255/Charlie_ai)]
+git clone https://github.com/charlietech255/Charlie_ai
 cd <folder-name>
 
 # 2. Install stuff
