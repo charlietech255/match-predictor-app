@@ -1,5 +1,3 @@
-Here's a simple, human-like README.md for Charlie's little AI proxy project:
-
 ```markdown
 # Charlie's Quick AI API
 
